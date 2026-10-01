@@ -1,0 +1,61 @@
+import string
+import re
+class TextCleaner:
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+        self.raw_text = ""
+        self.clean_text = ""
+
+    def read_text(self):
+        with open(self.file_path, "r", encoding="utf-8") as file:
+            self.raw_text = file.read()
+
+    def replace_sentence_end(self):
+        text = self.raw_text
+        for mark in [".", "!", "?"]:
+            # בכל פעם מדובר בסימן אחר מהרשימה ואז עושים REPLACE לסימן
+            text = text.replace(mark, " <eos> ")
+        return text
+
+    def to_lowercase(self, text):
+        return text.lower()
+
+    def remove_punctuation(self, text):
+        new_text = ""
+        i = 0
+
+        while i < len(text): # אי אפשר לעשות FOR כי אי אפשר להוסיף 5 לאינדקס
+            # אם מצאנו את תגית הסיום, ניקח אותה כולה ונקפוץ 5 צעדים קדימה
+            if text[i: i + 5] == "<eos>":
+                new_text += "<eos>"
+                i += 5
+            else:
+                # אם זה לא eos, נבדוק האם זה סימן פיסוק שצריך למחוק
+                if text[i] not in string.punctuation:
+                    new_text += text[i]
+                i += 1  # מתקדמים תו אחד רגיל קדימה
+
+        text = new_text
+        return text
+
+    def remove_extra_spaces (self, text):
+
+        text = re.sub(r'\n+', '\n', text)
+        # \n- ירידת שורה
+        # + בביטויים אעומר יותר מאחד
+        # כלומר בסופו של דבר מחפשים רצף ירידות שורה (2+) ומחליפים בבודדת בTEXT
+
+        text = re.sub(r'[ \t]+', ' ', text)
+        # \t- tab,  - space
+        # + means more than one
+        # are being replaced by ' '
+
+        return text
+
+    def clean_all(self):
+        text= self.replace_sentence_end()
+        text = self.to_lowercase(text)
+        text = self.remove_punctuation(text)
+        text = self.remove_extra_spaces(text)
+        self.clean_text = text
+        
